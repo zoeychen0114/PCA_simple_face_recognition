@@ -1,0 +1,58 @@
+#get the size of reduced size images
+img  = Image.open("***")
+resized_img = img.resize((round(img.size[0]*.25), round(img.size[1]*.25))) #resize images
+m,n = np.shape(resized_img)
+images_01 = np.zeros((1,m*n))
+images_02 = np.zeros((1,m*n))
+
+#call PCA package from sklearn
+from sklearn.decomposition import PCA 
+pca=PCA(n_components=6)
+newData01=pca.fit_transform(images_01)
+eigenfaces_01 = pca.components_.T
+pca=PCA(n_components=6)
+newData02=pca.fit_transform(images_02)
+eigenfaces_02 = pca.components_.T
+
+#plot eigenfaces
+for i in range(6):
+    resized_01 = np.reshape(eigenfaces_01[:,i],(m,n)).T
+    resized_02 = np.reshape(eigenfaces_02[:,i],(m,n)).T
+    imshow(resized_01.T, cmap='gray')
+    plt.show()
+    imshow(resized_02.T, cmap='gray')
+    plt.show()
+
+#recognition score
+#open 2 test images
+img01  = Image.open("******")
+test_01 = img01.resize((round(img01.size[0]*.25), round(img01.size[1]*.25)))
+img02  = Image.open("******")
+test_02 = img02.resize((round(img02.size[0]*.25), round(img02.size[1]*.25)))
+test_01 = np.reshape(test_01,(m*n,1))
+test_02 = np.reshape(test_02,(m*n,1))
+
+#compute score
+def compute_score(x,y):
+    score = np.abs(float(np.dot(x.T, y)/(np.linalg.norm(x)*np.linalg.norm(y))))
+    return score
+
+score01 = compute_score(test_01, eigenfaces_01[:,0]) 
+print('test01 vs subject01:',score01)
+score02 = compute_score(test_01, eigenfaces_02[:,0])
+print('test01 vs subject02:',score02)   
+score03 = compute_score(test_02, eigenfaces_01[:,0])
+print('test02 vs subject01:',score03)
+score04 = compute_score(test_02, eigenfaces_02[:,0])
+print('test02 vs subject02:',score04)    
+
+
+#compare the test images with original images
+score01 = compute_score(test_01, images_01[0,:]) 
+print('test01 vs subject01:',score01)
+score02 = compute_score(test_01, images_02[0,:])
+print('test01 vs subject02:',score02)   
+score03 = compute_score(test_02, images_01[0,:])
+print('test02 vs subject01:',score03)
+score04 = compute_score(test_02, images_02[0,:])
+print('test02 vs subject02:',score04) 
